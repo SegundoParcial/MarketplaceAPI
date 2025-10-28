@@ -151,3 +151,4 @@ C:\Users\tineo\Desktop\MarketplaceAPI\MarketplaceAPI\obj\Debug\net9.0\refint\Mar
 C:\Users\tineo\Desktop\MarketplaceAPI\MarketplaceAPI\obj\Debug\net9.0\MarketplaceAPI.pdb
 C:\Users\tineo\Desktop\MarketplaceAPI\MarketplaceAPI\obj\Debug\net9.0\MarketplaceAPI.genruntimeconfig.cache
 C:\Users\tineo\Desktop\MarketplaceAPI\MarketplaceAPI\obj\Debug\net9.0\ref\MarketplaceAPI.dll
+C:\Users\tineo\Desktop\MarketplaceAPI\MarketplaceAPI\obj\Debug\net9.0\MarketplaceAPI.sourcelink.json
