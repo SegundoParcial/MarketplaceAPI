@@ -1,0 +1,1 @@
+namespace MarketplaceAPI.DTOs.Company; public record CompanyDto(System.Guid Id, string Name); public record UpdateCompanyDto(string Name);

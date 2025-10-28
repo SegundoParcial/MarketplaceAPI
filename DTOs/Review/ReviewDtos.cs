@@ -1,0 +1,1 @@
+namespace MarketplaceAPI.DTOs.Review; public record CreateReviewDto(System.Guid ProductId, int Rating, string? Comment); public record ReviewDto(System.Guid Id, System.Guid ProductId, System.Guid CustomerUserId, int Rating, string? Comment, System.DateTime CreatedAt);

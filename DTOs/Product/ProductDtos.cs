@@ -1,0 +1,1 @@
+namespace MarketplaceAPI.DTOs.Product; public record CreateProductDto(string Name, string Description, decimal Price, int Stock); public record UpdateProductDto(string Name, string Description, decimal Price, int Stock); public record ProductDto(System.Guid Id, System.Guid CompanyId, string Name, string Description, decimal Price, int Stock);

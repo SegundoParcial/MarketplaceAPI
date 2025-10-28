@@ -1,0 +1,1 @@
+namespace MarketplaceAPI.Models; public enum OrderStatus { New, Shipped, Delivered, Canceled } public class Order { public Guid Id { get; set; } public Guid CustomerUserId { get; set; } public Guid CompanyId { get; set; } public DateTime CreatedAt { get; set; } public OrderStatus Status { get; set; } = OrderStatus.New; public List<OrderItem> Items { get; set; } = new(); }

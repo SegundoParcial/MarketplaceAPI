@@ -1,0 +1,1 @@
+namespace MarketplaceAPI.DTOs.User; public record LoginDto(string Email, string Password); public record LoginResult(string Token, string Role, System.Guid? CompanyId); public record RegisterCompanyDto(string Email, string Password, string CompanyName); public record RegisterCustomerDto(string Email, string Password);

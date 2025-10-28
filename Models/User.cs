@@ -1,0 +1,1 @@
+using System.ComponentModel.DataAnnotations; namespace MarketplaceAPI.Models; public class User { public Guid Id { get; set; } [Required, MaxLength(320)] public string Email { get; set; } = default!; [Required] public string PasswordHash { get; set; } = default!; [Required, MaxLength(20)] public string Role { get; set; } = default!; }
