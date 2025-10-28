@@ -1,1 +1,19 @@
-using Microsoft.AspNetCore.Identity; namespace MarketplaceAPI.Services; public class PasswordHasherService { private readonly PasswordHasher<string> _hasher = new(); public string Hash(string password)=>_hasher.HashPassword("",password); public bool Verify(string hash,string password)=>_hasher.VerifyHashedPassword("",hash,password)!=PasswordVerificationResult.Failed; }
+using Microsoft.AspNetCore.Identity;
+
+namespace MarketplaceAPI.Services
+{
+    public class PasswordHasherService
+    {
+        private readonly PasswordHasher<string> _hasher = new();
+
+        public string Hash(string password)
+        {
+            return _hasher.HashPassword("", password);
+        }
+
+        public bool Verify(string hash, string password)
+        {
+            return _hasher.VerifyHashedPassword("", hash, password) != PasswordVerificationResult.Failed;
+        }
+    }
+}
