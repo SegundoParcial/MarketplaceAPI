@@ -53,10 +53,10 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ✅ Configurar JWT
+// ✅ Configuración JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "devkey_change_me";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-var jwtAudience = builder.Configuration["Jwt:Audience"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "https://marketplaceapi.azurewebsites.net";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "https://marketplaceapi.azurewebsites.net";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
@@ -70,6 +70,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+
+        // 🧩 Permitir tokens locales (sin issuer/audience)
+        opt.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"JWT Error: {context.Exception.Message}");
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -93,24 +103,12 @@ builder.Services.AddCors(opt =>
 var app = builder.Build();
 
 // ✅ Middleware
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Marketplace API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
-else
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Marketplace API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Marketplace API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseCors();
 app.UseAuthentication();
