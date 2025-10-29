@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models; // 👈 Importante
+using Microsoft.OpenApi.Models;
 using MarketplaceAPI.Data;
 using MarketplaceAPI.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ✅ Servicios base
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -21,7 +22,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API para Empresa y Cliente con autenticación JWT"
     });
 
-    // 🔐 Agregar esquema de seguridad para el botón "Authorize"
+    // 🔐 Botón "Authorize"
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -48,24 +49,27 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ✅ Configurar la conexión a SQL Server
+// ✅ Conexión a SQL Server
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ✅ Configurar JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "devkey_change_me";
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
         opt.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = signingKey,
-            ValidateLifetime = true
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
@@ -80,7 +84,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<PasswordHasherService>();
 builder.Services.AddScoped<TokenService>();
 
-// ✅ Configurar CORS
+// ✅ CORS (para permitir conexión desde Flutter o Swagger)
 builder.Services.AddCors(opt =>
 {
     opt.AddDefaultPolicy(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
@@ -89,12 +93,24 @@ builder.Services.AddCors(opt =>
 var app = builder.Build();
 
 // ✅ Middleware
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Marketplace API v1");
-    c.RoutePrefix = "swagger";
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Marketplace API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+else
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Marketplace API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
 
 app.UseCors();
 app.UseAuthentication();

@@ -8,11 +8,13 @@ namespace MarketplaceAPI.Services
 {
     public class TokenService
     {
+        private readonly IConfiguration _config;
         private readonly SymmetricSecurityKey _key;
 
         public TokenService(IConfiguration config)
         {
-            var jwtKey = config["Jwt:Key"] ?? "devkey_change_me";
+            _config = config;
+            var jwtKey = _config["Jwt:Key"] ?? "devkey_change_me";
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         }
 
@@ -31,6 +33,8 @@ namespace MarketplaceAPI.Services
                 claims.Add(new Claim("companyId", companyId.Value.ToString()));
 
             var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
                 claims: claims,
                 expires: DateTime.UtcNow.AddHours(2),
                 signingCredentials: creds
