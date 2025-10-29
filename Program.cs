@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models; // 👈 Importante
+using Microsoft.OpenApi.Models;
 using MarketplaceAPI.Data;
 using MarketplaceAPI.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ✅ Servicios base
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -21,7 +22,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API para Empresa y Cliente con autenticación JWT"
     });
 
-    // 🔐 Agregar esquema de seguridad para el botón "Authorize"
+    // 🔐 Botón "Authorize"
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -48,24 +49,37 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ✅ Configurar la conexión a SQL Server
+// ✅ Conexión a SQL Server
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ✅ Configurar JWT
+// ✅ Configuración JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "devkey_change_me";
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "https://marketplaceapi.azurewebsites.net";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "https://marketplaceapi.azurewebsites.net";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
         opt.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = signingKey,
-            ValidateLifetime = true
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+
+        // 🧩 Permitir tokens locales (sin issuer/audience)
+        opt.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"JWT Error: {context.Exception.Message}");
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -80,7 +94,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<PasswordHasherService>();
 builder.Services.AddScoped<TokenService>();
 
-// ✅ Configurar CORS
+// ✅ CORS (para permitir conexión desde Flutter o Swagger)
 builder.Services.AddCors(opt =>
 {
     opt.AddDefaultPolicy(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
